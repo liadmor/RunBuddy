@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/RadiusSetting"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/radiussetting"
+        android:title="Radius Setting">
+    </item>
+    <item
+        android:id="@+id/StartActivity"
+        app:showAsAction="ifRoom|withText"
+        android:icon="@drawable/startactivities"
+        android:title="Start Activity">
+    </item>
+    <item
+        android:id="@+id/ShowActibities"
+        app:showAsAction="ifRoom|withText"
+        android:icon="@drawable/showactivities"
+        android:title="Show Activities">
+    </item>
+
+</menu>
