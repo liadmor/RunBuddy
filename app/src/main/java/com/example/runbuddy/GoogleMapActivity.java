@@ -8,25 +8,26 @@ import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
-import com.example.runbuddy.databinding.ActivityMapsBinding;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 
 public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
@@ -37,8 +38,10 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
     private boolean mLocationPermissionGranted;
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private Location mLastKnownLocation;
-    private static final int DEFAULT_ZOOM = 15;
+    private static final int DEFAULT_ZOOM = 13;
     private final LatLng mDefaultLocation = new LatLng(-33.8523341, 151.2106085);
+    private Circle circle;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +57,7 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
                 .findFragmentById(R.id.maps);
         mapFragment.getMapAsync(this);
 
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        //mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
     }
 
@@ -95,11 +98,28 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
         LatLng sydney = new LatLng(-34, 151);
         mMap.addMarker(new MarkerOptions().position(sydney).title("sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sydney,17));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sydney,DEFAULT_ZOOM));
         mMap.setOnMarkerClickListener(this);
+
+        //draw circle
+        mMap.addCircle(new CircleOptions()
+                .center(new LatLng(-34, 151))
+                .radius(1000)
+                .strokeWidth(10)
+                .strokeColor(Color.BLACK)
+                .fillColor(Color.argb(128, 255, 0, 0))
+               .clickable(true));
+
+        //on click inside the circle
+        mMap.setOnCircleClickListener(new GoogleMap.OnCircleClickListener() {
+            @Override
+            public void onCircleClick(Circle circle) {
+                int strokeColor = circle.getStrokeColor() ^ 0x00ffffff;
+                circle.setStrokeColor(strokeColor);
+            }
+        });
 
         updateLocationUI();
         //getDeviceLocation();
@@ -160,5 +180,4 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
 
         updateLocationUI();
     }
-
 }
