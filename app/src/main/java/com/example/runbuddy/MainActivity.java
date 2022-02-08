@@ -27,12 +27,9 @@ public class MainActivity extends AppCompatActivity {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, MapsActivity.class));
+                startActivity(new Intent(MainActivity.this, GoogleMapActivity.class));
             }
         });
-
-
-
     }
 
     // Menu icons are inflated just as they were with actionbar
@@ -45,20 +42,22 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Intent intent;
+
         switch (item.getItemId()) {
             case R.id.RadiusSetting:
-                // User chose the "RadiusSetting" item, show the app settings UI...
                 Toast.makeText(this, "RadiusSetting selected", Toast.LENGTH_SHORT).show();
+                //intent = new Intent(this, GoogleMapActivity.class);
+                //startActivity(intent);
+                this.finish();
                 return true;
 
             case R.id.StartActivity:
-                // User chose the "StartActivity" action, mark the current item
-                // as a favorite...
                 Toast.makeText(this, "StartActivity selected", Toast.LENGTH_SHORT).show();
+                intent = new Intent(this, MainActivity.class);
+                startActivity(intent);
                 return true;
             case R.id.ShowActibities:
-                // User chose the "ShowActibities" action, mark the current item
-                // as a favorite...
                 Toast.makeText(this, "ShowActibities selected", Toast.LENGTH_SHORT).show();
                 return true;
             default:
