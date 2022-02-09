@@ -46,8 +46,8 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
     private Location mLastKnownLocation;
     private static final int DEFAULT_ZOOM = 15;
     private final LatLng mDefaultLocation = new LatLng(-33.8523341, 151.2106085);
-    private Circle radiusCircle;
-    private double radiusNumber;
+    private Circle mRadiusCircle;
+    private double radiusNumber = 0;
     private Marker mMarkLocation;
 
 
@@ -125,6 +125,14 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
         mMarkLocation = mMap.addMarker(new MarkerOptions()
                         .position(mDefaultLocation)
                         .title(getString((R.string.dropped_pin))));
+
+        mRadiusCircle = mMap.addCircle(new CircleOptions()
+                .center(new LatLng(-33.8523341, 151.2106085))
+                .radius(0)
+                .fillColor(Color.TRANSPARENT)
+                .strokeColor(Color.BLACK)
+                .strokeWidth(10));
+
         Button ApplyButton = (Button) findViewById(R.id.button);
 
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation,DEFAULT_ZOOM));
@@ -133,7 +141,6 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
             mLocationPermissionGranted = true;
             mMap.setMyLocationEnabled(true);
         }
-
 
         updateLocationUI();
         getDeviceLocation();
@@ -158,7 +165,7 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
 
     private void setSearchCircle(LatLng newLatlng) {
         if (mMap != null) {
-             radiusCircle = mMap.addCircle(new CircleOptions()
+             mRadiusCircle = mMap.addCircle(new CircleOptions()
                     .center(newLatlng)
                      .radius((radiusNumber*10))
                     .fillColor(Color.TRANSPARENT)
@@ -168,9 +175,7 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
     }
 
     private void moveSearchCircle(LatLng newLatlng) {
-        if(radiusCircle != null){
-            radiusCircle.setCenter(newLatlng);
-        }
+        mRadiusCircle.setCenter(newLatlng);
     }
 
     @Override
@@ -189,7 +194,13 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
                     mMarkLocation.setPosition(poi.latLng);
                     mMarkLocation.setTitle(poi.name);
                     mMarkLocation.showInfoWindow();
-                    setSearchCircle(poi.latLng);
+                    //setSearchCircle(poi.latLng);
+                    mRadiusCircle.setCenter(poi.latLng);
+                    mRadiusCircle.setRadius((10*radiusNumber));
+                    mRadiusCircle.setFillColor(Color.TRANSPARENT);
+                    mRadiusCircle.setStrokeColor(Color.BLACK);
+                    mRadiusCircle.setStrokeWidth(10);
+                    //moveSearchCircle(poi.latLng);
                 }
         );
     }
@@ -205,7 +216,13 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
                 mMarkLocation.setTitle(getString((R.string.dropped_pin)));
                 mMarkLocation.setSnippet(snippet);
                 mMarkLocation.showInfoWindow();
-                setSearchCircle(latLng);
+                //setSearchCircle(latLng);
+                mRadiusCircle.setCenter(latLng);
+                mRadiusCircle.setRadius((10*radiusNumber));
+                mRadiusCircle.setFillColor(Color.TRANSPARENT);
+                mRadiusCircle.setStrokeColor(Color.BLACK);
+                mRadiusCircle.setStrokeWidth(10);
+                //moveSearchCircle(latLng);
                 });
     }
 
