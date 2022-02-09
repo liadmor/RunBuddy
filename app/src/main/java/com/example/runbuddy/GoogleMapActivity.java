@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -46,6 +47,7 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
     private static final int DEFAULT_ZOOM = 15;
     private final LatLng mDefaultLocation = new LatLng(-33.8523341, 151.2106085);
     private Circle radiusCircle;
+    private double radiusNumber;
 
 
 
@@ -53,6 +55,24 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_google_map);
+
+        SeekBar SeekBar = (SeekBar)findViewById(R.id.seekBar);
+        // perform seek bar change listener event used for getting the progress value
+        SeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                radiusNumber = progress;
+            }
+
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                // TODO Auto-generated method stub
+            }
+
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                Toast.makeText(GoogleMapActivity.this, "Seek bar progress is :" + radiusNumber,
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
 
         //add toolbar
         Toolbar myToolbar = (Toolbar) findViewById(R.id.toolbargoogle);
@@ -154,17 +174,11 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
         if (mMap != null) {
              radiusCircle = mMap.addCircle(new CircleOptions()
                     .center(newLatlng)
-                    //.radius(1000)
-                     .radius(searchRadius())
+                     .radius((radiusNumber*10))
                     .fillColor(Color.TRANSPARENT)
                     .strokeColor(Color.BLACK)
                     .strokeWidth(10));
         }
-    }
-
-    private double searchRadius(){
-
-        return 500;
     }
 
     private void moveSearchCircle(LatLng newLatlng) {
