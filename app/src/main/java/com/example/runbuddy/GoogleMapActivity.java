@@ -2,6 +2,7 @@ package com.example.runbuddy;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatSeekBar;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -10,6 +11,7 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.location.LocationListener;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -29,7 +31,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
+import java.util.Locale;
+
+public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, LocationListener {
 
 
     private GoogleMap mMap;
@@ -41,6 +45,8 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
     private static final int DEFAULT_ZOOM = 13;
     private final LatLng mDefaultLocation = new LatLng(-33.8523341, 151.2106085);
     private Circle circle;
+    private Circle radiusCircle;
+
 
 
     @Override
@@ -57,7 +63,7 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
                 .findFragmentById(R.id.maps);
         mapFragment.getMapAsync(this);
 
-        //mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
     }
 
@@ -121,8 +127,75 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
             }
         });
 
+        // Allow users to add a marker using a long click
+        setMapLongClick(mMap);
+
+        //POI listener
+        setPoiClick(mMap);
+
         updateLocationUI();
         //getDeviceLocation();
+    }
+
+    private void setSearchCircle(LatLng newLatlng) {
+        if (mMap != null) {
+             radiusCircle = mMap.addCircle(new CircleOptions()
+                    .center(newLatlng)
+                    .radius(1000)
+                    .fillColor(Color.TRANSPARENT)
+                    .strokeColor(Color.BLACK)
+                    .strokeWidth(10));
+        }
+    }
+
+    private void moveSearchCircle(LatLng newLatlng) {
+        if(radiusCircle != null){
+            radiusCircle.setCenter(newLatlng);
+        }
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        if (mDefaultLocation != null) {
+            LatLng currentLatLng = new LatLng(location.getLatitude(),location.getLongitude());
+            moveSearchCircle(currentLatLng);
+        }
+    }
+
+    //Add POI listener
+    private void setPoiClick(GoogleMap googleMap){
+
+        googleMap.setOnPoiClickListener(poi ->
+                {
+                    MarkerOptions lid = new MarkerOptions()
+                            .position(poi.latLng)
+                            .title(poi.name);
+                    Marker poiMarker = googleMap.addMarker(lid);
+                            //Marker poiMarker = googleMap.addMarker(new MarkerOptions()
+                            //.position(poi.latLng)
+                            //.title(poi.name)
+                    //);
+                    poiMarker.showInfoWindow();
+                    setSearchCircle(poi.latLng);
+
+                }
+        );
+    }
+
+
+    //Allow users to add a marker using a long click
+    public void setMapLongClick(GoogleMap googleMap) {
+
+        googleMap.setOnMapLongClickListener(latLng ->
+                {
+                String snippet = String.format(Locale.getDefault(), "Lat:%1$.5f, Long:%2$.5f", latLng.latitude, latLng.longitude);
+                MarkerOptions lid = new MarkerOptions()
+                            .position(latLng)
+                            .title(getString((R.string.dropped_pin)))
+                            .snippet(snippet);
+                googleMap.addMarker(lid);
+                setSearchCircle(latLng);
+                });
     }
 
     private void updateLocationUI(){
