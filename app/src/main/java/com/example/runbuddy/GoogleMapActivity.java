@@ -48,6 +48,7 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
     private final LatLng mDefaultLocation = new LatLng(-33.8523341, 151.2106085);
     private Circle radiusCircle;
     private double radiusNumber;
+    private Marker mMarkLocation;
 
 
 
@@ -65,12 +66,9 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
             }
 
             public void onStartTrackingTouch(SeekBar seekBar) {
-                // TODO Auto-generated method stub
             }
 
             public void onStopTrackingTouch(SeekBar seekBar) {
-                Toast.makeText(GoogleMapActivity.this, "Seek bar progress is :" + radiusNumber,
-                        Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -124,6 +122,9 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mMarkLocation = mMap.addMarker(new MarkerOptions()
+                        .position(mDefaultLocation)
+                        .title(getString((R.string.dropped_pin))));
         Button ApplyButton = (Button) findViewById(R.id.button);
 
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation,DEFAULT_ZOOM));
@@ -138,21 +139,6 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
         getDeviceLocation();
 
         mMap.setOnMarkerClickListener(this);
-
-        //LatLng sydney = new LatLng(-34, 151);
-        //mMap.addMarker(new MarkerOptions().position(sydney).title("sydney"));
-        //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sydney,DEFAULT_ZOOM));
-        //mMap.setOnMarkerClickListener(this);
-
-        //draw circle
-        //mMap.addCircle(new CircleOptions()
-                //.center(new LatLng(-34, 151))
-                //.center(new LatLng(mLastKnownLocation.getLatitude(),mLastKnownLocation.getLongitude()))
-                //.radius(1000)
-                //.strokeWidth(10)
-                //.strokeColor(Color.BLACK)
-                //.fillColor(Color.argb(128, 255, 0, 0))
-               //.clickable(true));
 
         //on click inside the circle
         mMap.setOnCircleClickListener(new GoogleMap.OnCircleClickListener() {
@@ -200,13 +186,10 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
 
         googleMap.setOnPoiClickListener(poi ->
                 {
-                    MarkerOptions lid = new MarkerOptions()
-                            .position(poi.latLng)
-                            .title(poi.name);
-                    Marker poiMarker = googleMap.addMarker(lid);
-                    poiMarker.showInfoWindow();
+                    mMarkLocation.setPosition(poi.latLng);
+                    mMarkLocation.setTitle(poi.name);
+                    mMarkLocation.showInfoWindow();
                     setSearchCircle(poi.latLng);
-
                 }
         );
     }
@@ -218,11 +201,10 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
         googleMap.setOnMapLongClickListener(latLng ->
                 {
                 String snippet = String.format(Locale.getDefault(), "Lat:%1$.5f, Long:%2$.5f", latLng.latitude, latLng.longitude);
-                MarkerOptions lid = new MarkerOptions()
-                            .position(latLng)
-                            .title(getString((R.string.dropped_pin)))
-                            .snippet(snippet);
-                googleMap.addMarker(lid);
+                mMarkLocation.setPosition(latLng);
+                mMarkLocation.setTitle(getString((R.string.dropped_pin)));
+                mMarkLocation.setSnippet(snippet);
+                mMarkLocation.showInfoWindow();
                 setSearchCircle(latLng);
                 });
     }
