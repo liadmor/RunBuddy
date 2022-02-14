@@ -8,42 +8,69 @@ import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
+import android.location.LocationListener;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
-import com.example.runbuddy.databinding.ActivityMapsBinding;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
-public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
+import java.util.Locale;
+
+public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, LocationListener {
 
 
     private GoogleMap mMap;
     //private ActivityMapsBinding binding;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private boolean mLocationPermissionGranted;
-    private FusedLocationProviderClient mFusedLocationProviderClient;
+    private FusedLocationProviderClient mfusedLocationProviderClient;
     private Location mLastKnownLocation;
     private static final int DEFAULT_ZOOM = 15;
     private final LatLng mDefaultLocation = new LatLng(-33.8523341, 151.2106085);
+    private Circle mRadiusCircle;
+    private double radiusNumber = 0;
+    private Marker mMarkLocation;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_google_map);
+
+        SeekBar SeekBar = (SeekBar)findViewById(R.id.seekBar);
+        // perform seek bar change listener event used for getting the progress value
+        SeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                radiusNumber = progress;
+            }
+
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
 
         //add toolbar
         Toolbar myToolbar = (Toolbar) findViewById(R.id.toolbargoogle);
@@ -54,7 +81,7 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
                 .findFragmentById(R.id.maps);
         mapFragment.getMapAsync(this);
 
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        mfusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
     }
 
@@ -95,14 +122,108 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mMarkLocation = mMap.addMarker(new MarkerOptions()
+                        .position(mDefaultLocation)
+                        .title(getString((R.string.dropped_pin))));
 
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sydney,17));
-        mMap.setOnMarkerClickListener(this);
+        mRadiusCircle = mMap.addCircle(new CircleOptions()
+                .center(new LatLng(-33.8523341, 151.2106085))
+                .radius(0)
+                .fillColor(Color.TRANSPARENT)
+                .strokeColor(Color.BLACK)
+                .strokeWidth(10));
+
+        Button ApplyButton = (Button) findViewById(R.id.button);
+
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation,DEFAULT_ZOOM));
+        if ( ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED){
+            mLocationPermissionGranted = true;
+            mMap.setMyLocationEnabled(true);
+        }
 
         updateLocationUI();
-        //getDeviceLocation();
+        getDeviceLocation();
+
+        mMap.setOnMarkerClickListener(this);
+
+        //on click inside the circle
+        mMap.setOnCircleClickListener(new GoogleMap.OnCircleClickListener() {
+            @Override
+            public void onCircleClick(Circle circle) {
+                int strokeColor = circle.getStrokeColor() ^ 0x00ffffff;
+                circle.setStrokeColor(strokeColor);
+            }
+        });
+
+        // Allow users to add a marker using a long click
+        setMapLongClick(mMap);
+
+        //POI listener
+        setPoiClick(mMap);
+    }
+
+    private void setSearchCircle(LatLng newLatlng) {
+        if (mMap != null) {
+             mRadiusCircle = mMap.addCircle(new CircleOptions()
+                    .center(newLatlng)
+                     .radius((radiusNumber*10))
+                    .fillColor(Color.TRANSPARENT)
+                    .strokeColor(Color.BLACK)
+                    .strokeWidth(10));
+        }
+    }
+
+    private void moveSearchCircle(LatLng newLatlng) {
+        mRadiusCircle.setCenter(newLatlng);
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        if (mDefaultLocation != null) {
+            LatLng currentLatLng = new LatLng(location.getLatitude(),location.getLongitude());
+            moveSearchCircle(currentLatLng);
+        }
+    }
+
+    //Add POI listener with radius circle
+    private void setPoiClick(GoogleMap googleMap){
+
+        googleMap.setOnPoiClickListener(poi ->
+                {
+                    mMarkLocation.setPosition(poi.latLng);
+                    mMarkLocation.setTitle(poi.name);
+                    mMarkLocation.showInfoWindow();
+                    //setSearchCircle(poi.latLng);
+                    mRadiusCircle.setCenter(poi.latLng);
+                    mRadiusCircle.setRadius((10*radiusNumber));
+                    mRadiusCircle.setFillColor(Color.TRANSPARENT);
+                    mRadiusCircle.setStrokeColor(Color.BLACK);
+                    mRadiusCircle.setStrokeWidth(10);
+                    //moveSearchCircle(poi.latLng);
+                }
+        );
+    }
+
+
+    //Allow users to add a marker using a long click
+    public void setMapLongClick(GoogleMap googleMap) {
+
+        googleMap.setOnMapLongClickListener(latLng ->
+                {
+                String snippet = String.format(Locale.getDefault(), "Lat:%1$.5f, Long:%2$.5f", latLng.latitude, latLng.longitude);
+                mMarkLocation.setPosition(latLng);
+                mMarkLocation.setTitle(getString((R.string.dropped_pin)));
+                mMarkLocation.setSnippet(snippet);
+                mMarkLocation.showInfoWindow();
+                //setSearchCircle(latLng);
+                mRadiusCircle.setCenter(latLng);
+                mRadiusCircle.setRadius((10*radiusNumber));
+                mRadiusCircle.setFillColor(Color.TRANSPARENT);
+                mRadiusCircle.setStrokeColor(Color.BLACK);
+                mRadiusCircle.setStrokeWidth(10);
+                //moveSearchCircle(latLng);
+                });
     }
 
     private void updateLocationUI(){
@@ -159,6 +280,44 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
         }
 
         updateLocationUI();
+    }
+
+    //getting last known location and moving the map to it.
+    private void getDeviceLocation() {
+        try {
+            if (ActivityCompat.checkSelfPermission(GoogleMapActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) { //if permitted
+                Task locationResult = mfusedLocationProviderClient.getLastLocation();
+                locationResult.addOnCompleteListener(GoogleMapActivity.this, new OnCompleteListener() {
+                    @Override
+                    public void onComplete(@NonNull Task task) {
+                        try{
+                            mLastKnownLocation = (Location) task.getResult();
+                            Log.i("my location: ", mLastKnownLocation.toString());
+                            mMap.moveCamera(CameraUpdateFactory.newLatLng(
+                                    new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude())));
+                        }catch(Exception e){
+                            Log.e("Null Location", "Exception", e );
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation,DEFAULT_ZOOM));
+                            mMap.getUiSettings().setMyLocationButtonEnabled(true);
+                        }
+                    }
+                });
+            }else{
+                requestLocationPermission();
+            }
+        } catch (SecurityException e) {
+            Log.e("Exception: %s", e.getMessage());
+        }
+    }
+
+    //asking for location permission
+    private void requestLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this.getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) ==PackageManager.PERMISSION_GRANTED){
+            mLocationPermissionGranted = true;
+        }else{
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        }
+
     }
 
 }
