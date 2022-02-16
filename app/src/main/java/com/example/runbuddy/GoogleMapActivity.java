@@ -7,6 +7,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -15,10 +16,18 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -33,6 +42,11 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.Console;
+import java.io.UnsupportedEncodingException;
 import java.util.Locale;
 
 public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, LocationListener {
@@ -49,6 +63,8 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
     private Circle mRadiusCircle;
     private double radiusNumber = 0;
     private Marker mMarkLocation;
+    private String cookie;
+    private double radius,longitude, latitude;
 
 
 
@@ -56,7 +72,8 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_google_map);
-
+        Intent intent = getIntent();
+        cookie = intent.getStringExtra("cookie");
         SeekBar SeekBar = (SeekBar)findViewById(R.id.seekBar);
         // perform seek bar change listener event used for getting the progress value
         SeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -72,6 +89,18 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
             }
         });
 
+        Button apply = findViewById(R.id.apply);
+        apply.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    setRadius(radius, longitude, latitude);
+                }
+                catch (Exception error){
+                    Log.e("SEND_LOC", error.toString());
+                }
+            }
+        });
         //add toolbar
         Toolbar myToolbar = (Toolbar) findViewById(R.id.toolbargoogle);
         setSupportActionBar(myToolbar);
@@ -110,7 +139,7 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
             case R.id.ShowActibities:
                 // User chose the "ShowActibities" action, mark the current item
                 // as a favorite...
-                Toast.makeText(this, "ShowActibities selected", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "ShowActivities selected", Toast.LENGTH_SHORT).show();
                 return true;
             default:
                 // If we got here, the user's action was not recognized.
@@ -133,7 +162,7 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
                 .strokeColor(Color.BLACK)
                 .strokeWidth(10));
 
-        Button ApplyButton = (Button) findViewById(R.id.button);
+        Button ApplyButton = (Button) findViewById(R.id.apply);
 
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation,DEFAULT_ZOOM));
         if ( ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -222,6 +251,9 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
                 mRadiusCircle.setFillColor(Color.TRANSPARENT);
                 mRadiusCircle.setStrokeColor(Color.BLACK);
                 mRadiusCircle.setStrokeWidth(10);
+                radius = 10*radiusNumber;
+                longitude = latLng.longitude;
+                latitude = latLng.latitude;
                 //moveSearchCircle(latLng);
                 });
     }
@@ -318,6 +350,50 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
 
+    }
+
+    private void setRadius(double radius, double longitude, double latitude){
+        try {
+            RequestQueue requestQueue = Volley.newRequestQueue(this);
+            String URL = "http://10.0.2.2:5000/loc/set_radius";
+            JSONObject jsonBody = new JSONObject();
+            jsonBody.put("radius", radius);
+            jsonBody.put("longitude", longitude);
+            jsonBody.put("latitude", latitude);
+
+            final String requestBody = jsonBody.toString();
+
+            CustomStringRequest stringRequest = new CustomStringRequest(Request.Method.POST, cookie, URL, new Response.Listener<CustomStringRequest.ResponseM>() {
+                @Override
+                public void onResponse(CustomStringRequest.ResponseM result) {
+                    //From here you will get headers
+                    Log.i("VOLLEY", result.response);
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.e("VOLLEY", error.toString());
+                }
+            }) {
+                @Override
+                public String getBodyContentType() {
+                    return "application/json; charset=utf-8";
+                }
+
+                @Override
+                public byte[] getBody() throws AuthFailureError {
+                    try {
+                        return requestBody == null ? null : requestBody.getBytes("utf-8");
+                    } catch (UnsupportedEncodingException uee) {
+                        VolleyLog.wtf("Unsupported Encoding while trying to get the bytes of %s using %s", requestBody, "utf-8");
+                        return null;
+                    }
+                }
+            };
+            requestQueue.add(stringRequest);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
 }

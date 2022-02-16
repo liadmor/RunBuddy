@@ -32,6 +32,7 @@ import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 
+
 public class MainActivity extends AppCompatActivity {
 
     @Override
@@ -81,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
             jsonBody.put("password", password);
             final String requestBody = jsonBody.toString();
 
-            CustomStringRequest stringRequest = new CustomStringRequest(Request.Method.POST, URL, new Response.Listener<CustomStringRequest.ResponseM>() {
+            CustomStringRequest stringRequest = new CustomStringRequest(Request.Method.POST,null, URL, new Response.Listener<CustomStringRequest.ResponseM>() {
                 @Override
                 public void onResponse(CustomStringRequest.ResponseM result) {
                     //From here you will get headers
@@ -91,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
                         if (!responseString.getBoolean("result")) {
                             showMessage(responseString.getString("reason"));
                         }else{
-                            Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
+                            Intent mapIntent = new Intent(MainActivity.this, GoogleMapActivity.class);
                             mapIntent.putExtra("cookie",sessionId);
                             startActivity(mapIntent);
                         }

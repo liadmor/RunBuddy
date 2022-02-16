@@ -1,19 +1,25 @@
 package com.example.runbuddy;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.toolbox.HttpHeaderParser;
 
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 import java.util.Map;
 
 public class CustomStringRequest extends Request<CustomStringRequest.ResponseM> {
 
     private Response.Listener<CustomStringRequest.ResponseM> mListener;
+    String cookie;
 
-    public CustomStringRequest(int method, String url, Response.Listener<CustomStringRequest.ResponseM> responseListener, Response.ErrorListener listener) {
+    public CustomStringRequest(int method,String cookie, String url, Response.Listener<CustomStringRequest.ResponseM> responseListener, Response.ErrorListener listener) {
         super(method, url, listener);
+        if(cookie != null){
+            this.cookie = cookie;
+        }
         this.mListener = responseListener;
     }
 
@@ -37,6 +43,14 @@ public class CustomStringRequest extends Request<CustomStringRequest.ResponseM> 
         responseM.response = parsed;
 
         return Response.success(responseM, HttpHeaderParser.parseCacheHeaders(response));
+    }
+
+    @Override
+    public Map<String, String> getHeaders() throws AuthFailureError {
+        Map<String, String>  params = new HashMap<String, String>();
+        params.put("Cookie",this.cookie);
+
+        return params;
     }
 
 
