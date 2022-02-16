@@ -1,8 +1,6 @@
 package com.example.runbuddy;
 
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -16,21 +14,18 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
-import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
-import com.android.volley.toolbox.HttpHeaderParser;
-import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.google.android.material.textfield.TextInputEditText;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+
 
 
 public class MainActivity extends AppCompatActivity {
@@ -83,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
             final String requestBody = jsonBody.toString();
 
             CustomStringRequest stringRequest = new CustomStringRequest(Request.Method.POST,null, URL, new Response.Listener<CustomStringRequest.ResponseM>() {
+
                 @Override
                 public void onResponse(CustomStringRequest.ResponseM result) {
                     //From here you will get headers
@@ -159,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
                 intent = new Intent(this, MainActivity.class);
                 startActivity(intent);
                 return true;
-            case R.id.ShowActibities:
+            case R.id.ShowActivities:
                 // User chose the "ShowActibities" action, mark the current item
                 // as a favorite...
                 Toast.makeText(this, "ShowActibities selected", Toast.LENGTH_SHORT).show();

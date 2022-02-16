@@ -60,6 +60,7 @@ tools:context=".LoginActivity">
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginBottom="16dp"
+                android:paddingTop="10dp"
                 android:text="Hello, login to your account"
                 android:textColor="#696969"
                 android:textSize="16sp"
