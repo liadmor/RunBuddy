@@ -23,7 +23,6 @@ import org.json.JSONException;
 
 public class showActivitiesActivity extends AppCompatActivity {
     private String cookie;
-    RecyclerView recyclerView;
 
 
     @Override

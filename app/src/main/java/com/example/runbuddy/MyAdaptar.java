@@ -13,6 +13,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TimeZone;
+
 public class MyAdaptar extends RecyclerView.Adapter<MyAdaptar.MyViewHolder> {
     JSONArray activities;
     Context context;
@@ -35,12 +41,17 @@ public class MyAdaptar extends RecyclerView.Adapter<MyAdaptar.MyViewHolder> {
         try {
             holder.starterName.setText(activities.getJSONObject(position).getString("starterUser"));
             holder.distance.setText(activities.getJSONObject(position).getString("distance"));
-            holder.dateTime.setText(activities.getJSONObject(position).getString("date") + " " + activities.getJSONObject(position).getString("time"));
+            Date timeD = new Date(Long.parseLong(activities.getJSONObject(position).getString("time")) * 1000);
+            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+
+            String Time = sdf.format(timeD);
+            holder.dateTime.setText(Time);
 
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
+
 
     @Override
     public int getItemCount() {

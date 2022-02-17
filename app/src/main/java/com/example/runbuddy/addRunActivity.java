@@ -112,7 +112,6 @@ public class addRunActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 addActivity(combinedCal.getTimeInMillis() / 1000, Double.parseDouble(distance.getText().toString()));
-                setFailure();
             }
         });
 
@@ -190,6 +189,10 @@ public class addRunActivity extends AppCompatActivity {
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
+                    NetworkResponse networkResponse = error.networkResponse;
+                    if(networkResponse.statusCode == 500){
+                        setFailure();
+                    }
                     Log.e("VOLLEY", error.toString());
                 }
             }) {
@@ -214,7 +217,6 @@ public class addRunActivity extends AppCompatActivity {
                     if(mStatusCode == 200){
                         setSuccess();
                     }
-
                     return super.parseNetworkResponse(response);
                 }
             };
