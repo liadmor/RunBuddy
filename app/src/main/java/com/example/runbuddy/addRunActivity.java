@@ -215,7 +215,6 @@ public class addRunActivity extends AppCompatActivity {
                         setSuccess();
                     }
 
-
                     return super.parseNetworkResponse(response);
                 }
             };

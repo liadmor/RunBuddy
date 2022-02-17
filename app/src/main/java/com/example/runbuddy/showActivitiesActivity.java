@@ -54,6 +54,7 @@ public class showActivitiesActivity extends AppCompatActivity {
                 intent = new Intent(showActivitiesActivity.this, GoogleMapActivity.class);
                 intent.putExtra("cookie", cookie);
                 startActivity(intent);
+                return true;
             case R.id.StartActivity:
                 // User chose the "StartActivity" action, mark the current item
                 intent = new Intent(showActivitiesActivity.this, addRunActivity.class);
