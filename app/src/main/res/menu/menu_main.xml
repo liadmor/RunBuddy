@@ -2,24 +2,29 @@
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-
     <item
         android:id="@+id/RadiusSetting"
-        app:showAsAction="ifRoom"
+        app:showAsAction="always"
         android:icon="@drawable/radiussetting"
         android:title="Radius Setting">
     </item>
     <item
         android:id="@+id/StartActivity"
-        app:showAsAction="ifRoom|withText"
+        app:showAsAction="always"
         android:icon="@drawable/startactivities"
         android:title="Start Activity">
     </item>
     <item
         android:id="@+id/ShowActivities"
-        app:showAsAction="ifRoom|withText"
+        app:showAsAction="always"
         android:icon="@drawable/showactivities"
         android:title="Show Activities">
+    </item>
+    <item
+        android:id="@+id/logout"
+        app:showAsAction="always"
+        android:icon="@drawable/login"
+        android:title="Log Out">
     </item>
 
 </menu>

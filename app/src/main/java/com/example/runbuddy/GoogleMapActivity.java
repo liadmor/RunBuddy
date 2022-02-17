@@ -102,7 +102,7 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
         });
         //add toolbar
         Toolbar myToolbar = (Toolbar) findViewById(R.id.toolbargoogle);
-        setSupportActionBar(myToolbar);
+            setSupportActionBar(myToolbar);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -134,10 +134,17 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
                 intent = new Intent(GoogleMapActivity.this, addRunActivity.class);
                 intent.putExtra("cookie", cookie);
                 startActivity(intent);
+                return true;
             case R.id.ShowActivities:
                 // User chose the "ShowActivities" action, mark the current item
                 // as a favorite...
-                Toast.makeText(this, "ShowActivities selected", Toast.LENGTH_SHORT).show();
+                intent = new Intent(GoogleMapActivity.this, showActivitiesActivity.class);
+                intent.putExtra("cookie", cookie);
+                startActivity(intent);
+                return true;
+            case R.id.logout:
+                intent = new Intent(this, MainActivity.class);
+                startActivity(intent);
                 return true;
             default:
                 // If we got here, the user's action was not recognized.

@@ -64,6 +64,18 @@
             android:inputType="number"
             android:minHeight="48dp" />
 
+        <TextView
+            android:id="@+id/error"
+            android:layout_width="249dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="40dp"
+            android:textColor="#F40000"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:text="Date is in the past"
+            android:visibility="invisible" />
+
         <Button
             android:id="@+id/addButton"
             android:layout_width="342dp"

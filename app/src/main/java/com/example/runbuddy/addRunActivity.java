@@ -22,6 +22,7 @@ import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -34,6 +35,8 @@ import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 public class addRunActivity extends AppCompatActivity {
     private DatePickerDialog datePicker;
@@ -43,6 +46,10 @@ public class addRunActivity extends AppCompatActivity {
     private EditText distance;
     private Button addButton;
     private String cookie;
+    private Calendar combinedCal = new GregorianCalendar(TimeZone.getTimeZone("GMT+2"));
+    private boolean addActSuccess = false;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +80,7 @@ public class addRunActivity extends AppCompatActivity {
                         new DatePickerDialog.OnDateSetListener() {
                             @Override
                             public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                                combinedCal.set(year, monthOfYear, dayOfMonth);
                                 datePickerText.setText(dayOfMonth + "/" + (monthOfYear + 1) + "/" + year);
                             }
                         }, year, month, day);
@@ -85,11 +93,14 @@ public class addRunActivity extends AppCompatActivity {
                 final Calendar cldr = Calendar.getInstance();
                 int hour = cldr.get(Calendar.HOUR_OF_DAY);
                 int minutes = cldr.get(Calendar.MINUTE);
+
                 // time picker dialog
                 timePicker = new TimePickerDialog(addRunActivity.this,
                         new TimePickerDialog.OnTimeSetListener() {
                             @Override
                             public void onTimeSet(TimePicker tp, int sHour, int sMinute) {
+                                combinedCal.set(Calendar.HOUR_OF_DAY, sHour);
+                                combinedCal.set(Calendar.MINUTE, sMinute);
                                 timePickerText.setText(sHour + ":" + sMinute);
                             }
                         }, hour, minutes, true);
@@ -100,11 +111,8 @@ public class addRunActivity extends AppCompatActivity {
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                addActivity(timePickerText.getText().toString(), datePickerText.getText().toString(), Double.parseDouble(distance.getText().toString()));
-                Toast.makeText(addRunActivity.this, "Added successfully",  Toast.LENGTH_LONG).show();
-                Intent intent = new Intent(addRunActivity.this, GoogleMapActivity.class);
-                intent.putExtra("cookie", cookie);
-                startActivity(intent);
+                addActivity(combinedCal.getTimeInMillis() / 1000, Double.parseDouble(distance.getText().toString()));
+                setFailure();
             }
         });
 
@@ -135,7 +143,13 @@ public class addRunActivity extends AppCompatActivity {
             case R.id.ShowActivities:
                 // User chose the "ShowActivities" action, mark the current item
                 // as a favorite...
-                Toast.makeText(this, "ShowActivities selected", Toast.LENGTH_SHORT).show();
+                intent = new Intent(addRunActivity.this, showActivitiesActivity.class);
+                intent.putExtra("cookie", cookie);
+                startActivity(intent);
+                return true;
+            case R.id.logout:
+                intent = new Intent(this, MainActivity.class);
+                startActivity(intent);
                 return true;
             default:
                 // If we got here, the user's action was not recognized.
@@ -144,13 +158,25 @@ public class addRunActivity extends AppCompatActivity {
         }
     }
 
-    private void addActivity(String time, String date, Double distance){
+    private void setSuccess(){
+//        Toast.makeText(addRunActivity.this, "Added successfully",  Toast.LENGTH_LONG).show();
+        Intent intent = new Intent(addRunActivity.this, GoogleMapActivity.class);
+        intent.putExtra("cookie", cookie);
+        startActivity(intent);
+    }
+
+    private void setFailure(){
+        TextView error = findViewById(R.id.error);
+        error.setVisibility(View.VISIBLE);
+    }
+
+
+    private void addActivity(long time, Double distance){
         try {
             RequestQueue requestQueue = Volley.newRequestQueue(this);
             String URL = "http://10.0.2.2:5000/loc/add_activity";
             JSONObject jsonBody = new JSONObject();
             jsonBody.put("time", time);
-            jsonBody.put("date", date);
             jsonBody.put("distance", distance);
 
             final String requestBody = jsonBody.toString();
@@ -180,6 +206,17 @@ public class addRunActivity extends AppCompatActivity {
                         VolleyLog.wtf("Unsupported Encoding while trying to get the bytes of %s using %s", requestBody, "utf-8");
                         return null;
                     }
+                }
+
+                @Override
+                protected Response<ResponseM> parseNetworkResponse(NetworkResponse response) {
+                    int mStatusCode = response.statusCode;
+                    if(mStatusCode == 200){
+                        setSuccess();
+                    }
+
+
+                    return super.parseNetworkResponse(response);
                 }
             };
             requestQueue.add(stringRequest);
