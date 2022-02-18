@@ -37,14 +37,24 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        Button btn = (Button)findViewById(R.id.button_signin);
+        Button signIn = (Button)findViewById(R.id.button_signin);
+        Button register = (Button)findViewById(R.id.register);
 
-        btn.setOnClickListener(new View.OnClickListener() {
+        signIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 EditText username = findViewById(R.id.et_username);
                 EditText password = findViewById(R.id.et_password);
-                loginRequest(username.getText().toString(), password.getText().toString());
+                makeRequest(username.getText().toString(), password.getText().toString(), "sign_in");
+            }
+        });
+
+        register.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                EditText username = findViewById(R.id.et_username);
+                EditText password = findViewById(R.id.et_password);
+                makeRequest(username.getText().toString(), password.getText().toString(), "register");
             }
         });
 
@@ -62,14 +72,24 @@ public class MainActivity extends AppCompatActivity {
             case "UP":
                 login_error.setText("Password is incorrect, Try again!");
                 break;
+            case "error":
+                login_error.setText("Username already exists!");
         }
     }
 
 
-    private void loginRequest(String username, String password){
+    private void makeRequest(String username, String password, String action){
         try {
+            String URL = "";
             RequestQueue requestQueue = Volley.newRequestQueue(this);
-            String URL = "http://10.0.2.2:5000/auth/login";
+
+            if(action == "sign_in"){
+                URL = "http://10.0.2.2:5000/auth/login";
+            }
+            else if(action == "register"){
+                URL = "http://10.0.2.2:5000/auth/register";
+            }
+
             JSONObject jsonBody = new JSONObject();
             jsonBody.put("username", username);
             jsonBody.put("password", password);
@@ -80,15 +100,21 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onResponse(CustomStringRequest.ResponseM result) {
                     //From here you will get headers
+
                     String sessionId = result.headers.get("Set-Cookie");
                     try {
                         JSONObject responseString = new JSONObject(result.response);
                         if (!responseString.getBoolean("result")) {
                             showMessage(responseString.getString("reason"));
                         }else{
-                            Intent mapIntent = new Intent(MainActivity.this, GoogleMapActivity.class);
-                            mapIntent.putExtra("cookie",sessionId);
-                            startActivity(mapIntent);
+                            if(action == "sign_in") {
+                                Intent mapIntent = new Intent(MainActivity.this, GoogleMapActivity.class);
+                                mapIntent.putExtra("cookie", sessionId);
+                                startActivity(mapIntent);
+                            }
+                            else{
+                                makeRequest(username, password, "sign_in");
+                            }
                         }
 
 
