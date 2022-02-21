@@ -77,7 +77,6 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
         SeekBar SeekBar = (SeekBar)findViewById(R.id.seekBar);
         // perform seek bar change listener event used for getting the progress value
         SeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 radiusNumber = progress;
             }
@@ -86,6 +85,8 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
             }
 
             public void onStopTrackingTouch(SeekBar seekBar) {
+                mRadiusCircle.setRadius((10*radiusNumber));
+
             }
         });
 
