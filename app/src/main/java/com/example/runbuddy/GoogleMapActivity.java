@@ -85,6 +85,7 @@ public class GoogleMapActivity extends AppCompatActivity implements OnMapReadyCa
             }
 
             public void onStopTrackingTouch(SeekBar seekBar) {
+                mRadiusCircle.setRadius((10*radiusNumber));
             }
         });
 
